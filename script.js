@@ -76,19 +76,37 @@ const displayMovements = function (movements) {
 };
 displayMovements(account1.movements);
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
+const totalMoney = function (movements) {
+  const totalCash = movements.reduce((acc, curr) => acc + curr, 0);
+  labelBalance.textContent = `${totalCash} €`;
+};
+totalMoney(account1.movements);
 
-// const currencies = new Map([
-//   ["USD", "United States dollar"],
-//   ["EUR", "Euro"],
-//   ["GBP", "Pound sterling"],
-// ]);
+const moneyCredited = function (movements) {
+  const finalMoneyCredited = movements
+    .filter((movement) => movement > 0)
+    .reduce((acc, cur) => acc + cur, 0);
+  labelSumIn.textContent = `${finalMoneyCredited}€`;
+};
+moneyCredited(account1.movements);
 
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const moneyDebited = function (movements) {
+  const finalMoneyDebited = movements
+    .filter((movement) => movement < 0)
+    .reduce((acc, cur) => acc + cur, 0);
 
-/////////////////////////////////////////////////
+  labelSumOut.textContent = `${finalMoneyDebited}€`;
+};
+moneyDebited(account1.movements);
+
+const interest = function (movements) {
+  const finalInterest = movements
+    .filter((movement) => movement > 0)
+    .map((deposit) => (deposit * 1.2) / 100)
+    .reduce((acc, curr) => acc + curr, 0);
+  labelSumInterest.textContent = `${finalInterest}€`;
+};
+interest(account1.movements);
 const createUserNames = function (accs) {
   accs.forEach((acc) => {
     acc.userName = acc.owner
@@ -102,3 +120,17 @@ const createUserNames = function (accs) {
 };
 createUserNames(accounts);
 console.log(accounts);
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// LECTURES
+
+// const currencies = new Map([
+//   ["USD", "United States dollar"],
+//   ["EUR", "Euro"],
+//   ["GBP", "Pound sterling"],
+// ]);
+
+// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+/////////////////////////////////////////////////
