@@ -61,9 +61,9 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
-const displayMovements = function (movements) {
+const displayMovements = function (currentUser) {
   containerMovements.innerHTML = "";
-  movements.map((movement, index) => {
+  currentUser.movements.map((movement, index) => {
     const type = movement > 0 ? "deposit" : "withdrawal";
     const html = `
     <div class="movements__row">
@@ -74,41 +74,43 @@ const displayMovements = function (movements) {
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
 };
-displayMovements(account1.movements);
 
-const totalMoney = function (movements) {
-  const totalCash = movements.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${totalCash} €`;
+const totalMoney = function (currentUser) {
+  currentUser.balance = currentUser.movements.reduce(
+    (accum, curr) => accum + curr,
+    0
+  );
+  labelBalance.textContent = `${currentUser.balance}€`;
+  // console.log(currentUser);
 };
-totalMoney(account1.movements);
 
-const moneyCredited = function (movements) {
-  const finalMoneyCredited = movements
+const moneyCredited = function (currentUser) {
+  const finalMoneyCredited = currentUser.movements
     .filter((movement) => movement > 0)
     .reduce((acc, cur) => acc + cur, 0);
   labelSumIn.textContent = `${finalMoneyCredited}€`;
 };
-moneyCredited(account1.movements);
 
-const moneyDebited = function (movements) {
-  const finalMoneyDebited = movements
+const moneyDebited = function (currentUser) {
+  const finalMoneyDebited = currentUser.movements
     .filter((movement) => movement < 0)
     .reduce((acc, cur) => acc + cur, 0);
 
   labelSumOut.textContent = `${finalMoneyDebited}€`;
 };
-moneyDebited(account1.movements);
 
-const interest = function (movements) {
-  const finalInterest = movements
-    .filter((movement) => movement > 0)
-    .map((deposit) => (deposit * 1.2) / 100)
-    .reduce((acc, curr) => acc + curr, 0);
+const interest = function (currentUser) {
+  const finalInterest = Math.trunc(
+    currentUser.movements
+      .filter((movement) => movement > 0)
+      .map((deposit) => (deposit * currentUser.interestRate) / 100)
+      .reduce((acc, curr) => acc + curr, 0)
+  );
   labelSumInterest.textContent = `${finalInterest}€`;
 };
-interest(account1.movements);
-const createUserNames = function (accs) {
-  accs.forEach((acc) => {
+
+const createUserNames = function (currentUser) {
+  currentUser.forEach((acc) => {
     acc.userName = acc.owner
       .toLowerCase()
       .split(" ")
@@ -118,8 +120,56 @@ const createUserNames = function (accs) {
       .join("");
   });
 };
+const updateUI = function (acc) {
+  displayMovements(acc);
+  totalMoney(acc);
+  moneyCredited(acc);
+  moneyDebited(acc);
+  interest(acc);
+};
 createUserNames(accounts);
-console.log(accounts);
+let currentUser;
+btnLogin.addEventListener("click", (e) => {
+  e.preventDefault();
+  currentUser = accounts.find(
+    (acc) => acc.userName === inputLoginUsername.value
+  );
+  // console.log(currentUser);
+  if (currentUser?.pin === Number(inputLoginPin.value)) {
+    labelWelcome.textContent = `Welcome back ${
+      currentUser.owner.split(" ")[0] //gives only the first name of the user
+    }`;
+    containerApp.style.opacity = 100;
+    inputLoginUsername.value = inputLoginPin.value = "";
+    inputLoginPin.blur();
+
+    updateUI(currentUser);
+  }
+});
+let transferringUser;
+btnTransfer.addEventListener("click", (e) => {
+  e.preventDefault();
+  const inputAmount = Number(inputTransferAmount.value);
+  transferringUser = accounts.find(
+    (acc) => acc.userName === inputTransferTo.value
+  );
+  // console.log(transferringUser);
+  if (
+    inputAmount > 0 &&
+    transferringUser &&
+    currentUser.balance >= inputAmount &&
+    transferringUser?.userName !== currentUser.userName
+  ) {
+    currentUser.movements.push(-inputAmount);
+    transferringUser.movements.push(inputAmount);
+    updateUI(currentUser);
+    inputTransferTo.value = inputTransferAmount.value = "";
+    inputTransferAmount.blur();
+    // console.log("transfer success");
+  }
+});
+
+// console.log(accounts);
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
