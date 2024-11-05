@@ -61,9 +61,13 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
-const displayMovements = function (currentUser) {
+const displayMovements = function (currentUser, sort = false) {
   containerMovements.innerHTML = "";
-  currentUser.movements.map((movement, index) => {
+  const copyMovements = [...currentUser.movements];
+  const movs = sort
+    ? copyMovements.sort((a, b) => a - b)
+    : currentUser.movements;
+  movs.map((movement, index) => {
     const type = movement > 0 ? "deposit" : "withdrawal";
     const html = `
     <div class="movements__row">
@@ -134,7 +138,7 @@ btnLogin.addEventListener("click", (e) => {
   currentUser = accounts.find(
     (acc) => acc.userName === inputLoginUsername.value
   );
-  // console.log(currentUser);
+  console.log(currentUser);
   if (currentUser?.pin === Number(inputLoginPin.value)) {
     labelWelcome.textContent = `Welcome back ${
       currentUser.owner.split(" ")[0] //gives only the first name of the user
@@ -163,24 +167,41 @@ btnTransfer.addEventListener("click", (e) => {
     currentUser.movements.push(-inputAmount);
     transferringUser.movements.push(inputAmount);
     updateUI(currentUser);
-    inputTransferTo.value = inputTransferAmount.value = "";
-    inputTransferAmount.blur();
-    // console.log("transfer success");
+  }
+  inputTransferTo.value = inputTransferAmount.value = "";
+  inputTransferAmount.blur();
+});
+
+btnClose.addEventListener("click", (e) => {
+  e.preventDefault();
+  const enteredPin = Number(inputClosePin.value);
+  const removingUser = accounts.find(
+    (acc) => acc.userName === inputCloseUsername.value
+  );
+  if (removingUser && enteredPin === currentUser.pin) {
+    const index = accounts.findIndex(
+      (acc) => acc.userName === currentUser.userName
+    );
+    accounts.splice(index, 1);
+    containerApp.style.opacity = 0;
   }
 });
 
-// console.log(accounts);
-
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
-
-// const currencies = new Map([
-//   ["USD", "United States dollar"],
-//   ["EUR", "Euro"],
-//   ["GBP", "Pound sterling"],
-// ]);
-
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-/////////////////////////////////////////////////
+btnLoan.addEventListener("click", (e) => {
+  e.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  const hehe = currentUser.movements.find(
+    (movement) => movement >= amount * 0.1
+  );
+  if (amount > 0 && hehe) {
+    currentUser.movements.push(amount);
+    updateUI(currentUser);
+  }
+  inputLoanAmount.value = "";
+});
+let sorted = false;
+btnSort.addEventListener("click", (e) => {
+  e.preventDefault();
+  displayMovements(currentUser, !sorted);
+  sorted = !sorted;
+});
